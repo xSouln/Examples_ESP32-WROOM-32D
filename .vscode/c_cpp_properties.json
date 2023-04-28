@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/*",
+                "C:/Users/Afhib/esp/esp-idf/**",
+                "C:/Users/Afhib/esp/esp-idf/components/newlib/platform_include",
+                "${workspaceFolder}/build/config",
+                "${XLIB_PATH}/Components/sfc_spi/controls",
+                "${XLIB_PATH}/Components",
+                "${XLIB_PATH}/Drivers",
+                "${XLIB_PATH}",
+                "C:/Users/Afhib/Desktop/Projects/Examples_ESP32-WROOM-32D/Components",
+                "C:/Users/Afhib/.espressif/frameworks/esp-idf-v5.0.1/components/driver/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}
