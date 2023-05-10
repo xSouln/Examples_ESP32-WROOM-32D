@@ -1,32 +1,29 @@
 //==============================================================================
-//header:
-
-#ifndef TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-#define TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-//------------------------------------------------------------------------------
+#ifndef _USART_PORT_COMPONENT_CONFIG_H_
+#define _USART_PORT_COMPONENT_CONFIG_H_
+//==============================================================================
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif 
 //==============================================================================
 //includes:
 
 #include "Components_Types.h"
-//==============================================================================
-//macros:
-
 
 //==============================================================================
 //import:
 
-
 //==============================================================================
 //defines:
 
-#define TCP_SERVER_WIZ_OPERATION_BUF_SIZE 0x200
-#define TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE 0x100
+#define UART_PORT_RX_CIRCLE_BUF_SIZE_MASK 0x0ff
+#define UART_PORT_RX_OBJECT_BUF_SIZE 0x1ff
+#define UART_PORT_TX_CIRCLE_BUF_SIZE_MASK 0x3fff
+
+#define UART_PORT_NUMBER UART_NUM_1
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#endif //_USART_PORT_COMPONENT_CONFIG_H_

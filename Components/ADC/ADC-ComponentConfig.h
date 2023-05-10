@@ -1,32 +1,26 @@
 //==============================================================================
-//header:
-
-#ifndef TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-#define TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-//------------------------------------------------------------------------------
+#ifndef _ADC_COMPONENT_CONFIG_H_
+#define _ADC_COMPONENT_CONFIG_H_
+//==============================================================================
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif 
 //==============================================================================
 //includes:
 
 #include "Components_Types.h"
-//==============================================================================
-//macros:
-
 
 //==============================================================================
 //import:
 
-
+//extern DMA_HandleTypeDef hdma_usart1_rx;
 //==============================================================================
 //defines:
 
-#define TCP_SERVER_WIZ_OPERATION_BUF_SIZE 0x200
-#define TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE 0x100
+//#define UART_PORT_RX_CIRCLE_BUF_SIZE_MASK 0x0ff
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#endif //_ADC_COMPONENT_CONFIG_H_

@@ -1,6 +1,8 @@
 {
     "idf.flashType": "UART",
     "idf.portWin": "COM3",
+    "C_Cpp.default.intelliSenseMode": "gcc-arm",
+    "C_Cpp.errorSquiggles" :"disabled",
     "files.associations": {
         "freertos.h": "c",
         "portable.h": "c",
@@ -8,7 +10,13 @@
         "esp_newlib.h": "c",
         "reent.h": "c",
         "sfc_spi.h": "c",
-        "tcpserver_wizspicomponent.h": "c"
+        "tcpserver_wizspicomponent.h": "c",
+        "components.h": "c",
+        "usartport-component.h": "c"
     },
-    "idf.adapterTargetName": "esp32"
+    "idf.adapterTargetName": "esp32",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32.cfg"
+    ],
 }

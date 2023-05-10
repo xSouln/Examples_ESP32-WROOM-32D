@@ -3,21 +3,23 @@
 
 #include "Components.h"
 
-#include "TCPServer/Templates/WIZspi/Adapters/TCPServer_WIZspiAdapter.h"
+#include "TCPServer/Adapters/Common/WIZspi/TCPServer_WIZspiAdapter.h"
 
 #include "driver/gpio.h"
 //==============================================================================
 //defines:
 
-#define RX_BUF_SIZE TCP_SERVER_WIZ_SPI_RX_BUF_SIZE
-#define RX_RECEIVER_BUF_SIZE TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE
+#define OPERATION_BUF_SIZE TCP_SERVER_WIZ_OPERATION_BUF_SIZE
+#define RX_BUF_SIZE TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE
+#define TX_BUF_SIZE 0x200
 
 #define WIZ_RESET_PIN 21
 //==============================================================================
 //variables:
 
-static uint8_t rx_buf[RX_BUF_SIZE];
-static uint8_t rx_receiver_buf[RX_RECEIVER_BUF_SIZE];
+static uint8_t private_operation_buf[OPERATION_BUF_SIZE];
+static uint8_t private_rx_buf[RX_BUF_SIZE];
+static uint8_t private_tx_buf[TX_BUF_SIZE];
 
 TCPServerT TCPServerWIZspi;
 sfc_spi_t* wiz_spi;
@@ -82,13 +84,13 @@ void _TCPServerWIZspiComponentEventListener(TCPServerT* server, TCPServerSysEven
 	switch ((uint8_t)selector)
 	{
 		case TCPServerSysEventEndLine:
-			TerminalReceiveData(&server->Rx,
+			TerminalReceiveData(&server->Port,
 								((TCPServerReceivedDataT*)arg)->Data,
 								((TCPServerReceivedDataT*)arg)->Size);
 			break;
 		
 		case TCPServerSysEventBufferIsFull:
-			TerminalReceiveData(&server->Rx,
+			TerminalReceiveData(&server->Port,
 								((TCPServerReceivedDataT*)arg)->Data,
 								((TCPServerReceivedDataT*)arg)->Size);
 			break;
@@ -160,10 +162,8 @@ TCPServerWIZspiAdapterT TCPServerWIZspiAdapter =
 
 xResult TCPServerWIZspiComponentInit(void* parent)
 {
-	TCPServerWIZspiAdapter.ResponseBuffer = &Terminal.ResponseBuffer;
-	
-	TCPServerWIZspiAdapter.RxBuffer = rx_buf;
-	TCPServerWIZspiAdapter.RxBufferSize = sizeof(rx_buf);
+	TCPServerWIZspiAdapter.OperationBuffer = private_operation_buf;
+	TCPServerWIZspiAdapter.OperationBufferSize = sizeof(private_operation_buf);
 
 	gpio_reset_pin(WIZ_RESET_PIN);
     /* Set the GPIO as a push/pull output */
@@ -173,14 +173,19 @@ xResult TCPServerWIZspiComponentInit(void* parent)
 
 	wiz_spi = &sfc_spi_wiz;
 
+	xDataBufferInit(&TCPServerWIZspiAdapter.TxBuffer,
+			&TCPServerWIZspi,
+			0,
+			private_tx_buf,
+			sizeof(private_tx_buf));
+
 	xRxReceiverInit(&TCPServerWIZspiAdapter.RxReceiver,
-										&TCPServerWIZspi.Rx,
+										&TCPServerWIZspi.Port,
 										0,
-										rx_receiver_buf,
-										sizeof(rx_receiver_buf));
+										private_rx_buf,
+										sizeof(private_rx_buf));
 
 	TCPServerInit(&TCPServerWIZspi, parent, &TCPServerInterface);
-
 	TCPServerWIZspiAdapterInit(&TCPServerWIZspi, &TCPServerWIZspiAdapter);
 
   return xResultAccept;

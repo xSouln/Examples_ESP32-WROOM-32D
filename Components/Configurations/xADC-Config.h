@@ -1,8 +1,6 @@
 //==============================================================================
-//header:
-
-#ifndef TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-#define TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#ifndef _X_ADC_CONFIG_H_
+#define _X_ADC_CONFIG_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
@@ -10,23 +8,18 @@ extern "C" {
 //==============================================================================
 //includes:
 
-#include "Components_Types.h"
-//==============================================================================
-//macros:
-
-
-//==============================================================================
-//import:
-
 
 //==============================================================================
 //defines:
 
-#define TCP_SERVER_WIZ_OPERATION_BUF_SIZE 0x200
-#define TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE 0x100
+#define xADC1_ENABLE
+//#define xADC2_ENABLE
+//------------------------------------------------------------------------------
+#define xADC1_NumbersOfChannels 16
+#define xADC2_NumbersOfChannels 16
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#endif //_X_ADC_CONFIG_H_

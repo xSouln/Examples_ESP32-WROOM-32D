@@ -1,6 +1,6 @@
 //==============================================================================
-#ifndef _COMPONENTS_SELECTOR_H
-#define _COMPONENTS_SELECTOR_H
+#ifndef _COMPONENTS_SELECTOR_H_
+#define _COMPONENTS_SELECTOR_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +15,8 @@ extern "C" {
 #include "Terminal/Terminal_Component.h"
 #include "TCPServer/TCPServer_WIZspiComponent.h"
 #include "sfc_spi/sfc_spi_component.h"
+#include "SerialPort/UsartPort-Component.h"
+#include "ADC/ADC-Component.h"
 //==============================================================================
 //defines:
 
@@ -28,5 +30,5 @@ extern "C" {
 }
 #endif
 //------------------------------------------------------------------------------
-#endif
+#endif //_COMPONENTS_SELECTOR_H_
 

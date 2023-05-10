@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+	],
+	"settings": {
+		"files.associations": {
+			"freertos.h": "c",
+			"portable.h": "c",
+			"portmacro.h": "c",
+			"esp_newlib.h": "c",
+			"reent.h": "c",
+			"sfc_spi.h": "c",
+			"tcpserver_wizspicomponent.h": "c",
+			"tcpserver_wizspiadapter.h": "c",
+			"tcpserver.h": "c"
+		}
+	}
+}

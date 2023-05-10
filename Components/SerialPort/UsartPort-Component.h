@@ -1,32 +1,44 @@
 //==============================================================================
 //header:
 
-#ifndef TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-#define TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-//------------------------------------------------------------------------------
+#ifndef _USART_PORT_COMPONENT_H_
+#define _USART_PORT_COMPONENT_H_
+//==============================================================================
 #ifdef __cplusplus
 extern "C" {
 #endif
 //==============================================================================
 //includes:
 
-#include "Components_Types.h"
+#include "UsartPort-ComponentConfig.h"
+#include "Common/xPort/xPort.h"
+//==============================================================================
+//defines:
+
+
 //==============================================================================
 //macros:
 
 
 //==============================================================================
+//functions:
+
+xResult UsartPortComponentInit(void* parent);
+
+void UsartPortComponentHandler();
+void UsartPortComponentTimeSynchronization();
+void UsartPortComponentIRQ();
+//==============================================================================
 //import:
 
 
 //==============================================================================
-//defines:
+//export:
 
-#define TCP_SERVER_WIZ_OPERATION_BUF_SIZE 0x200
-#define TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE 0x100
+extern xPortT UsartPort;
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#endif //_USART_PORT_COMPONENT_H_

@@ -9,6 +9,7 @@ extern "C" {
 //includes:
 
 #include "esp_log.h"
+#include "driver/uart.h"
 //==============================================================================
 //defines:
 
