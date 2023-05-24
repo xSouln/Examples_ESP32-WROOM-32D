@@ -28,6 +28,8 @@ list(APPEND srcs
     ${COMMON_LIB_DIR}/Common/xADC/xADC.c
     ${COMMON_LIB_DIR}/Common/xADC/Communications/xADC-RxTransactions.c
     ${COMMON_LIB_DIR}/Common/xSystem/xSystem.c
+    ${COMMON_LIB_DIR}/Common/xWiFi/Communications/xWiFi-RxTransactions.c
+    ${COMMON_LIB_DIR}/Common/xWiFi/xWiFi.c
 )
 
 #includes path:
@@ -40,6 +42,7 @@ list(APPEND ink
     "${COMMON_LIB_DIR}/Common/xADC"
     "${COMMON_LIB_DIR}/Common/xADC/Communications"
     "${COMMON_LIB_DIR}/Common/xSystem"
+    "${COMMON_LIB_DIR}/Common/xWiFi"
 )
 #===============================================================================
 #terminal component:
@@ -80,6 +83,19 @@ list(APPEND srcs
 #includes path:
 list(APPEND ink
     "../Components/ADC"
+)
+#===============================================================================
+#WiFi component:
+
+#src:
+list(APPEND srcs
+    ../Components/WiFi/WiFi-Component.c
+    ../Components/WiFi/Adapters/WiFi-Adapter.c
+)
+
+#includes path:
+list(APPEND ink
+    "../Components/WiFi"
 )
 #===============================================================================
 #components:

@@ -12,12 +12,22 @@ extern "C" {
 
 #include "Common/xWiFi/xWiFi.h"
 #include "esp_wifi.h"
+#include "esp_netif.h"
+#include "lwip/err.h"
+#include "lwip/sys.h"
 //==============================================================================
 //types:
 
 typedef struct
 {
 	EventGroupHandle_t wifi_event_group;
+
+	esp_event_handler_instance_t instance_any_id;
+  	esp_event_handler_instance_t instance_got_ip;
+
+	esp_netif_t* sta_netif;
+
+	xWiFi_AddressT address;
 
 } WiFi_AdapterInternalT;
 //------------------------------------------------------------------------------
@@ -37,7 +47,7 @@ typedef struct
 //==============================================================================
 //functions:
 
-xResult WiFi_AdapterInit(xADC_T* wifi, WiFi_AdapterT* adapter, WiFi_AdapterInitializationT* initialization);
+xResult WiFi_AdapterInit(xWiFi_T* wifi, WiFi_AdapterT* adapter, WiFi_AdapterInitializationT* initialization);
 //==============================================================================
 #ifdef __cplusplus
 }

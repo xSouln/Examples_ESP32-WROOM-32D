@@ -17,6 +17,7 @@ extern "C" {
 #include "sfc_spi/sfc_spi_component.h"
 #include "SerialPort/UsartPort-Component.h"
 #include "ADC/ADC-Component.h"
+#include "WiFi/WiFi-Component.h"
 //==============================================================================
 //defines:
 

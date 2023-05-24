@@ -8,6 +8,8 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "driver/timer.h"
+
+#include "nvs_flash.h"
 //==============================================================================
 //defines:
 
@@ -37,7 +39,7 @@ void app_task(void* arg)
 {
     while (true)
     {
-        ComponentsHandler();
+        //ComponentsHandler();
 
         vTaskDelay(pdMS_TO_TICKS(10));
     }    
@@ -46,7 +48,6 @@ void app_task(void* arg)
 static bool IRAM_ATTR timer_group_isr_callback(void *args)
 {
     ComponentsTimeSynchronization();
-
     xSystemTimeSynchronization();
 
     return pdFALSE; // return whether a task switch is needed
@@ -54,11 +55,19 @@ static bool IRAM_ATTR timer_group_isr_callback(void *args)
 //------------------------------------------------------------------------------
 void app_main(void)
 {
-    int out_data_size = 0; 
+    int out_data_size = 0;
+
+    //Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+	{
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		ret = nvs_flash_init();
+    }
+
+	ESP_ERROR_CHECK(ret);
     
     /* Configure the peripheral according to the LED type */
-    ComponentsInit(app_main);
-
     timer_config_t timer_config =
     {
         .clk_src = TIMER_SRC_CLK_DEFAULT,
@@ -89,6 +98,8 @@ void app_main(void)
                         app_task_stack, // Array to use as the task's stack.
                         &app_task_buffer);
 */
+    ComponentsInit(app_main);
+    
     while (1)
     {
         ComponentsHandler();

@@ -5,9 +5,10 @@
             "browse": {
                 "path": [
                     "C:/Users/Afhib/Desktop/Projects/Examples_ESP32-WROOM-32D/Components",
-                    "${XLIB_PATH}",
-                    "${XLIB_PATH}/Drivers",
-                    "${XLIB_PATH}/Components"
+                    "${env:XLIB_PATH}",
+                    "${env:XLIB_PATH}/Drivers",
+                    "${env:XLIB_PATH}/Components",
+                    "C:/Users/Afhib/esp/esp-idf/**",
                 ]
             },
             "includePath": [
@@ -16,15 +17,11 @@
                 "C:/Users/Afhib/esp/esp-idf/**",
                 "C:/Users/Afhib/esp/esp-idf/components/newlib/platform_include",
                 "${workspaceFolder}/build/config",
-                "${XLIB_PATH}/Components/sfc_spi/controls",
-                "${XLIB_PATH}/Components",
-                "${XLIB_PATH}/Components/Configuration",
-                "${XLIB_PATH}/Drivers",
-                "${XLIB_PATH}",
-                "${XLIB_PATH}/Common",
-                "${XLIB_PATH}/Common/xADC",
-                "${XLIB_PATH}/Common/xPort",
-                "${XLIB_PATH}/Common/xTerminal",
+                "${env:XLIB_PATH}/Components/sfc_spi/controls",
+                "${env:XLIB_PATH}/Components",
+                "${env:XLIB_PATH}/Components/Configuration",
+                "${env:XLIB_PATH}/Drivers",
+                "${env:XLIB_PATH}",
                 "C:/Users/Afhib/Desktop/Projects/Examples_ESP32-WROOM-32D/Components",
                 "C:/Users/Afhib/.espressif/frameworks/esp-idf-v5.0.1/components/driver/include"
             ],
@@ -33,7 +30,8 @@
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "xUSER_TYPES"
+                "xTYPES_CONFIG",
+                "CONFIG_ESP_NETIF_LOOPBACK"
             ],
             "windowsSdkVersion": "10.0.19041.0",
             "compilerPath": "C:\\Users\\Afhib\\.espressif\\tools\\xtensa-esp32-elf\\esp-2022r1-11.2.0\\xtensa-esp32-elf\\bin\\xtensa-esp32-elf-gcc.exe",

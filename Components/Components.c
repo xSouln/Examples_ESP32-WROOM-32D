@@ -2,9 +2,6 @@
 //includes:
 
 #include "Components.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
 //==============================================================================
 //import:
 
@@ -45,7 +42,8 @@ void ComponentsHandler()
 {
 	TerminalComponentHandler();
 	UsartPortComponentHandler();
-	ADC_ComponentHandler();
+	//ADC_ComponentHandler();
+	WiFi_ComponentHandler();
 	//TransferLayerComponentHandler();
 
 	if (xSystemGetTime(ComponentsHandler) - led_toggle_time_stamp > 999)
@@ -61,7 +59,8 @@ void ComponentsTimeSynchronization()
 {
 	TerminalComponentTimeSynchronization();
 	UsartPortComponentTimeSynchronization();
-	ADC_ComponentTimeSynchronization();
+	//ADC_ComponentTimeSynchronization();
+	WiFi_ComponentTimeSynchronization();
 }
 //------------------------------------------------------------------------------
 /**
@@ -75,7 +74,8 @@ xResult ComponentsInit(void* parent)
 	xSystemInit(parent);
 	
 	UsartPortComponentInit(parent);
-	ADC_ComponentInit(parent);
+	//ADC_ComponentInit(parent);
+	WiFi_ComponentInit(parent);
 	//TransferLayerComponentInit(parent);
 
 	//TerminalTxBind(&SerialPortUART.Tx);

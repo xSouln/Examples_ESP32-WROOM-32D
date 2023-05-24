@@ -16,6 +16,7 @@ extern "C" {
 
 #define xTERMINAL_ENABLE 1
 #define xADC_ENABLE 1
+#define xWIFI_ENABLE 1
 //==============================================================================
 #ifdef __cplusplus
 }
