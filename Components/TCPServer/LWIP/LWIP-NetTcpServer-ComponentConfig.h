@@ -1,30 +1,26 @@
 //==============================================================================
-#ifndef _COMPONENTS_SELECTOR_H_
-#define _COMPONENTS_SELECTOR_H_
+//header:
+
+#ifndef _LWIP_TCP_SERVER_COMPONENT_CONFIG_H_
+#define _LWIP_TCP_SERVER_COMPONENT_CONFIG_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 //==============================================================================
 //includes:
 
-
-//==============================================================================
-//components:
-
-#include "Terminal/Terminal_Component.h"
-//#include "TCPServer/TCPServer_WIZspiComponent.h"
-#include "TcpServer/LWIP/LWIP-NetTcpServer-Component.h"
-#include "sfc_spi/sfc_spi_component.h"
-#include "SerialPort/UsartPort-Component.h"
-#include "ADC/ADC-Component.h"
-#include "WiFi/WiFi-Component.h"
-//==============================================================================
-//defines:
-
-
+#include "Components_Types.h"
 //==============================================================================
 //macros:
+
+
+//==============================================================================
+//import:
+
+
+//==============================================================================
+//defines:
 
 
 //==============================================================================
@@ -32,5 +28,4 @@ extern "C" {
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //_COMPONENTS_SELECTOR_H_
-
+#endif //_LWIP_TCP_SERVER_COMPONENT_CONFIG_H_

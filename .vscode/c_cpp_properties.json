@@ -21,7 +21,7 @@
                 "${env:XLIB_PATH}/Components",
                 "${env:XLIB_PATH}/Components/Configuration",
                 "${env:XLIB_PATH}/Drivers",
-                "${env:XLIB_PATH}",
+                "${env:XLIB_PATH}/",
                 "C:/Users/Afhib/Desktop/Projects/Examples_ESP32-WROOM-32D/Components",
                 "C:/Users/Afhib/.espressif/frameworks/esp-idf-v5.0.1/components/driver/include"
             ],

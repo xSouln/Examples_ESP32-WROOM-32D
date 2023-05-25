@@ -1,8 +1,8 @@
 //==============================================================================
 //header:
 
-#ifndef _TCP_SERVER_WIZ_SPI_COMPONENT_H
-#define _TCP_SERVER_WIZ_SPI_COMPONENT_H
+#ifndef _LWIP_TCP_SERVER_COMPONENT_H_
+#define _LWIP_TCP_SERVER_COMPONENT_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
@@ -10,8 +10,8 @@ extern "C" {
 //==============================================================================
 //includes:
 
-#include "TCPServer_WIZspiComponentConfig.h"
-#include "TCPServer/Controls/TCPServer.h"
+#include "LWIP-NetTcpServer-Component.h"
+#include "Common/xNet/xNet.h"
 //==============================================================================
 //defines:
 
@@ -19,10 +19,7 @@ extern "C" {
 //==============================================================================
 //functions:
 
-xResult TCPServerWIZspiComponentInit(void* parent);
-
-void _TCPServerWIZspiComponentHandler();
-void _TCPServerWIZspiComponentTimeSynchronization();
+xResult LWIP_NetTcpServerComponentInit(void* parent);
 //==============================================================================
 //import:
 
@@ -30,15 +27,15 @@ void _TCPServerWIZspiComponentTimeSynchronization();
 //==============================================================================
 //override:
 
-#define TCPServerWIZspiComponentHandler() TCPServerHandler(&TCPServerWIZspi)
-#define TCPServerWIZspiComponentTimeSynchronization() //TCPServerTimeSynchronization(&TCPServerWIZspi)
+#define LWIP_NetTcpServerComponentHandler() //TCPServerHandler(&TCPServerWIZspi)
+#define LWIP_NetTcpServerComponentTimeSynchronization() //TCPServerTimeSynchronization(&TCPServerWIZspi)
 //==============================================================================
 //export:
 
-extern TCPServerT TCPServerWIZspi;
+extern xNetT LWIP_Net;
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //_TCP_SERVER_WIZ_SPI_COMPONENT_H
+#endif //_LWIP_TCP_SERVER_COMPONENT_H_

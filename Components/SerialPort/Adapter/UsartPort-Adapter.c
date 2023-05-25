@@ -87,6 +87,14 @@ static xResult PrivateRequestListener(xPortT* port, xPortRequestSelector selecto
 		case xPortRequestClearTxBuffer:
 			break;
 
+		case xPortRequestStartTransmission:
+			xSemaphoreTake(adapter->Data.TransactionMutex, portMAX_DELAY);
+			break;
+
+		case xPortRequestEndTransmission:
+			xSemaphoreGive(adapter->Data.TransactionMutex);
+			break;
+
 		default : return xResultRequestIsNotFound;
 	}
 
@@ -266,6 +274,8 @@ xResult UsartPortAdapterInit(xPortT* port, UsartPortAdapterT* adapter)
 
 		xTaskCreate(uart_event_task, "uart_event_task", 1024, port, configMAX_PRIORITIES, NULL);
 		//xTaskCreate(uart_rx_task, "uart_rx_task", 1024, port, configMAX_PRIORITIES, NULL);
+
+		adapter->Data.TransactionMutex = xSemaphoreCreateMutex();
 		
 		return xResultAccept;
 	}

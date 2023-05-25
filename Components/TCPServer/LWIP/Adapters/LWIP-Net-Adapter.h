@@ -1,32 +1,45 @@
 //==============================================================================
 //header:
 
-#ifndef TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
-#define TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#ifndef _LWIP_NET_ADAPTER_H_
+#define _LWIP_NET_ADAPTER_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif 
 //==============================================================================
 //includes:
 
-#include "Components_Types.h"
+#include "Common/xNet/xNet.h"
 //==============================================================================
-//macros:
+//types:
 
+typedef struct
+{
+	uint8_t idle;
 
+} LWIP_NetAdapterInternalT;
+//------------------------------------------------------------------------------
+typedef struct
+{
+	xNetAdapterBaseT Base;
+
+	LWIP_NetAdapterInternalT Internal;
+
+} LWIP_NetAdapterT;
+//------------------------------------------------------------------------------
+typedef struct
+{
+	LWIP_NetAdapterT* Adapter;
+	
+} LWIP_NetAdapterInitT;
 //==============================================================================
-//import:
+//functions:
 
-
-//==============================================================================
-//defines:
-
-#define TCP_SERVER_WIZ_OPERATION_BUF_SIZE 0x200
-#define TCP_SERVER_WIZ_SPI_RX_RECEIVER_BUF_SIZE 0x100
+xResult LWIP_NetAdapterInit(xNetT* net, LWIP_NetAdapterInitT* init);
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //TCP_SERVER_WIZ_SPI_COMPONENT_CONFIG_H
+#endif //_LWIP_NET_ADAPTER_H_

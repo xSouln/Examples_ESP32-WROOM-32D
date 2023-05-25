@@ -30,6 +30,8 @@ list(APPEND srcs
     ${COMMON_LIB_DIR}/Common/xSystem/xSystem.c
     ${COMMON_LIB_DIR}/Common/xWiFi/Communications/xWiFi-RxTransactions.c
     ${COMMON_LIB_DIR}/Common/xWiFi/xWiFi.c
+    ${COMMON_LIB_DIR}/Common/xNet/Communications/xNet-RxTransactions.c
+    ${COMMON_LIB_DIR}/Common/xNet/xNet.c
 )
 
 #includes path:
@@ -43,6 +45,7 @@ list(APPEND ink
     "${COMMON_LIB_DIR}/Common/xADC/Communications"
     "${COMMON_LIB_DIR}/Common/xSystem"
     "${COMMON_LIB_DIR}/Common/xWiFi"
+    "${COMMON_LIB_DIR}/Common/xNet"
 )
 #===============================================================================
 #terminal component:
@@ -96,6 +99,19 @@ list(APPEND srcs
 #includes path:
 list(APPEND ink
     "../Components/WiFi"
+)
+#===============================================================================
+#tcp server component:
+
+#src:
+list(APPEND srcs
+    ../Components/TcpServer/LWIP/LWIP-NetTcpServer-Component.c
+    ../Components/TcpServer/LWIP/Adapters/LWIP-Net-Adapter.c
+)
+
+#includes path:
+list(APPEND ink
+    "../Components/TcpServer/LWIP"
 )
 #===============================================================================
 #components:

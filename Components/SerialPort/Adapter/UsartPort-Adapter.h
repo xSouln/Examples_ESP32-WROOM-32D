@@ -24,6 +24,7 @@ typedef struct
 	xCircleBufferT TxCircleBuffer;
 	
 	QueueHandle_t handle_queue;
+	SemaphoreHandle_t TransactionMutex;
 
 } UsartPortAdapterDataT;
 //------------------------------------------------------------------------------
