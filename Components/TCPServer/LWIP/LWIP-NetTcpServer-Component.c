@@ -5,14 +5,22 @@
 
 #include "LWIP-NetTcpServer-Component.h"
 #include "Adapters/LWIP-Net-Adapter.h"
+#include "Adapters/LWIP-NetPort-Adapter.h"
 
 #include "driver/gpio.h"
 //==============================================================================
 //defines:
 
 #define TASK_STACK_SIZE 0x1000
+#define RX_OPERATION_BUFFER_SIZE 0x800
+#define RX_BUFFER_SIZE 0x800
+#define TX_BUFFER_SIZE 0x800
 //==============================================================================
 //variables:
+
+static uint8_t private_rx_operation_buffer[RX_OPERATION_BUFFER_SIZE];
+static uint8_t private_rx_buffer[RX_BUFFER_SIZE];
+static uint8_t private_tx_buffer[RX_BUFFER_SIZE];
 
 xNetT LWIP_Net;
 
@@ -30,22 +38,45 @@ xNetSocketT Socket =
 {
 	.Number = -1
 };
+
+xPortT ServerPort;
 //==============================================================================
 //functions:
 
 
 //------------------------------------------------------------------------------
-static void PrivateEventListener(xNetT* net, xNetSysEventSelector selector, void* arg)
+static void PrivateEventListener(ObjectBaseT* object, int selector, void* arg)
 {
-	switch ((uint8_t)selector)
+	if (object->Description->ObjectId == xPORT_OBJECT_ID)
 	{
-		default : return;
+		xPortT* port = object;
+
+		switch (selector)
+		{
+			case xPortObjectEventRxFoundEndLine:
+			{
+				xPortEventDataPacketArgT* packet = arg;
+
+				TerminalReceiveData(port, packet->Data, packet->Size);
+			}
+			break;
+
+			case xPortObjectEventRxBufferIsFull:
+			{
+				xPortEventDataPacketArgT* packet = arg;
+
+				TerminalReceiveData(port, packet->Data, packet->Size);
+			}
+			break;
+
+			default : return;
+		}
 	}
 }
 //------------------------------------------------------------------------------
-static xResult PrivateRequestListener(xNetT* net, xNetSysRequestSelector selector, void* arg)
+static xResult PrivateRequestListener(ObjectBaseT* object, int selector, void* arg)
 {
-	switch ((uint8_t)selector)
+	switch (selector)
 	{		
 		default : return xResultRequestIsNotFound;
 	}
@@ -59,6 +90,8 @@ static void Task(void* arg)
 	static char data[512];
 	int data_size = 0;
 	char* result;
+
+	static uint32_t time_stamp = 0;
 
 	while (true)
 	{
@@ -106,8 +139,14 @@ static void Task(void* arg)
 					xPortEndTransmission(&UsartPort);
 				}
 			}
-
-			xNetSocketHandler(&Socket);
+/*
+			if (xSystemGetTime(Task) - time_stamp > 1000)
+			{
+				time_stamp = xSystemGetTime(Task);
+				xPortTransmitString(&ServerPort, "qwerty\r");
+			}
+*/
+			xPortHandler(&ServerPort);
 		}
 
 		last_status.Value = mWifi.Status.Value;
@@ -116,13 +155,14 @@ static void Task(void* arg)
 //==============================================================================
 //initializations:
 
-xNetSysInterfaceT NetSysInterface =
+static xNetObjectInterfaceT objectInterface =
 {
-	.RequestListener = (xNetSysRequestListenerT)PrivateRequestListener,
-	.EventListener = (xNetSysEventListenerT)PrivateEventListener
+	.RequestListener = (xObjectRequestListenerT)PrivateRequestListener,
+	.EventListener = (xObjectEventListenerT)PrivateEventListener
 };
 
 LWIP_NetAdapterT LWIP_NetAdapter = { 0 };
+LWIP_NetPortAdapterT LWIP_NetPortAdapter = { 0 };
 //==============================================================================
 //initialization:
 
@@ -137,9 +177,34 @@ xResult LWIP_NetTcpServerComponentInit(void* parent)
 	xNetInitT init =
 	{
 		.Parent = parent,
-		.Interface = &NetSysInterface
+		.Interface = &objectInterface
 	};
 	xNetInit(&LWIP_Net, &init);
+
+	LWIP_NetPortAdapterInitT net_port_init =
+	{
+		.Adapter = &LWIP_NetPortAdapter,
+
+		.RxOperationBuffer = private_rx_operation_buffer,
+		.RxOperationBufferSize = sizeof(private_rx_operation_buffer),
+
+		.RxBuffer = private_rx_buffer,
+		.RxBufferSize = sizeof(private_rx_buffer),
+
+		.TxBuffer = private_tx_buffer,
+		.TxBufferSize = sizeof(private_tx_buffer)
+	};
+
+	LWIP_NetPortAdapterInit(&ServerPort, &net_port_init);
+
+	xPortInitT port_init =
+	{
+		.Parent = parent,
+		.Interface = &objectInterface
+	};
+	xPortInit(&ServerPort, &port_init);
+
+	xPortSetBinding(&ServerPort, &Socket);
 
 	task_handle =
 			xTaskCreateStatic(Task, // Function that implements the task.

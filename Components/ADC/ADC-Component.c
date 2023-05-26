@@ -24,7 +24,7 @@ struct
 //==============================================================================
 //functions:
 
-static void EventListener(xPortT* port, xPortSysEventSelector selector, void* arg)
+static void EventListener(xADC_T* adc, xADC_ObjectEventSelector selector, void* arg)
 {
 	switch((int)selector)
 	{
@@ -33,7 +33,7 @@ static void EventListener(xPortT* port, xPortSysEventSelector selector, void* ar
 }
 //------------------------------------------------------------------------------
 
-static xResult RequestListener(xPortT* port, xPortSysRequestSelector selector, void* arg)
+static xResult RequestListener(xADC_T* adc, xADC_ObjectRequestSelector selector, void* arg)
 {
 	switch ((uint8_t)selector)
 	{
@@ -114,10 +114,10 @@ void ADC_ComponentTimeSynchronization()
 static ADC_AdapterT Private_ADC_Adapter;
 //------------------------------------------------------------------------------
 
-static xADC_SysInterfaceT Private_ADC_SysInterface =
+static xADC_ObjectInterfaceT Private_ADC_SysInterface =
 {
-	.RequestListener = (xADC_SysRequestListenerT)RequestListener,
-	.EventListener = (xADC_SysEventListenerT)EventListener
+	.RequestListener = (xObjectRequestListenerT)RequestListener,
+	.EventListener = (xObjectEventListenerT)EventListener
 };
 //------------------------------------------------------------------------------
 static uint16_t PrivatePointsMemory[sizeof(uint16_t) * 2 * 1024];

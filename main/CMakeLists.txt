@@ -107,11 +107,24 @@ list(APPEND ink
 list(APPEND srcs
     ../Components/TcpServer/LWIP/LWIP-NetTcpServer-Component.c
     ../Components/TcpServer/LWIP/Adapters/LWIP-Net-Adapter.c
+    ../Components/TcpServer/LWIP/Adapters/LWIP-NetPort-Adapter.c
 )
 
 #includes path:
 list(APPEND ink
     "../Components/TcpServer/LWIP"
+)
+#===============================================================================
+#mqtt client component:
+
+#src:
+list(APPEND srcs
+    ../Components/MQTT/MQTT-Component.c
+)
+
+#includes path:
+list(APPEND ink
+    "../Components/MQTT"
 )
 #===============================================================================
 #components:

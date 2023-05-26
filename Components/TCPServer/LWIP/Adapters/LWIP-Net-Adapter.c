@@ -11,9 +11,9 @@
 //variables:
 
 static int keepAlive = 1;
-static int keepIdle = 0;
+static int keepIdle = 30;
 static int keepInterval = 1;
-static int keepCount = 0;
+static int keepCount = 2;
 //==============================================================================
 //prototypes:
 
@@ -38,21 +38,7 @@ static void PrivateSocketHandler(xNetSocketT* socket)
 		int optval;
     	socklen_t optlen = sizeof(optval);
 
-		uint8_t rx_buffer[1];
-
-		int len = recv(socket->Number, rx_buffer, 0, 0);
-/*
-		getsockopt(socket->Number, SOL_SOCKET, SO_ERROR, &optval, &optlen);
-
-		if (optval != 0)
-		{
-			shutdown(socket->Number, 0);
-			close(socket->Number);
-			socket->Number = -1;
-		}
-		*/
-
-		if (len < 0)
+		if (getsockopt(socket->Number, SOL_SOCKET, SO_ERROR, &optval, &optlen) != 0 || optval != ERR_OK)
 		{
 			shutdown(socket->Number, 0);
 			close(socket->Number);
@@ -132,7 +118,8 @@ static xResult PrivateRequestListener(void* object, xNetRequestSelector selector
 			xNetSocketT* socket = object;
 			xNetSocketT* result = arg;
 
-			struct sockaddr_storage source_addr; // Large enough for both IPv4 or IPv6
+			// Large enough for both IPv4 or IPv6
+			struct sockaddr_storage source_addr;
         	socklen_t addr_len = sizeof(source_addr);
 
 			int socket_number = accept(socket->Number, (struct sockaddr *)&source_addr, &addr_len);
@@ -147,9 +134,9 @@ static xResult PrivateRequestListener(void* object, xNetRequestSelector selector
 			result->Number = socket_number;
 			
 			setsockopt(socket_number, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
-			//setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
-			//setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
-			//setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, sizeof(int));
+			setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
+			setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
+			setsockopt(socket_number, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, sizeof(int));
 
 			return xResultAccept;
 		}
@@ -160,12 +147,58 @@ static xResult PrivateRequestListener(void* object, xNetRequestSelector selector
 	return xResultAccept;
 }
 //------------------------------------------------------------------------------
-static void PrivateEventListener(xNetT* net, xNetEventSelector selector, void* arg)
+static void PrivateEventListener(void* object, xNetEventSelector selector, void* arg)
 {
 	switch((int)selector)
 	{
 		default: return;
 	}
+}
+//------------------------------------------------------------------------------
+static int PrivateTransmit(xNetSocketT* socket, void* data, int size)
+{
+	if (socket->Number != -1)
+	{
+		int sended = 0;
+		uint8_t* mem = data;
+
+		while (sended < size)
+		{
+			int len = send(socket->Number, mem + sended, size - sended, 0);
+
+			if(len < 0)
+			{
+				shutdown(socket->Number, 0);
+				close(socket->Number);
+				socket->Number = -1;
+
+				return -xResultError;
+			}
+
+			sended += len;
+		}
+		
+		return sended;
+	}
+
+	return -xResultError;
+}
+//------------------------------------------------------------------------------
+static int PrivateReceive(xNetSocketT* socket, void* data, int size)
+{
+	if (socket->Number != -1)
+	{
+		int received = recv(socket->Number, data, size, 0);
+
+		if (received < 0)
+		{
+			return -xResultError;
+		}
+		
+		return received;
+	}
+
+	return -xResultError;
 }
 //==============================================================================
 //initializations:
@@ -178,6 +211,9 @@ static xNetInterfaceT PrivateInterface =
 
 	.RequestListener = (xNetRequestListenerT)PrivateRequestListener,
 	.EventListener = (xNetEventListenerT)PrivateEventListener,
+
+	.Transmit = (xNetTransmitActionT)PrivateTransmit,
+	.Receive = (xNetReceiveActionT)PrivateReceive,
 };
 //------------------------------------------------------------------------------
 xResult LWIP_NetAdapterInit(xNetT* net, LWIP_NetAdapterInitT* init)

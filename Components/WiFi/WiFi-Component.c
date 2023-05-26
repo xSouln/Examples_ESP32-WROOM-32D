@@ -21,7 +21,7 @@ static StackType_t wifi_task_stack[WIFI_TASK_STACK_SIZE];
 //==============================================================================
 //functions:
 
-static void EventListener(xWiFi_T* wifi, xWiFi_SysEventSelector selector, void* arg)
+static void EventListener(xWiFi_T* wifi, xWiFi_ObjectEventSelector selector, void* arg)
 {
 	switch((int)selector)
 	{
@@ -30,9 +30,9 @@ static void EventListener(xWiFi_T* wifi, xWiFi_SysEventSelector selector, void* 
 }
 //------------------------------------------------------------------------------
 
-static xResult RequestListener(xWiFi_T* wifi, xWiFi_SysRequestSelector selector, void* arg)
+static xResult RequestListener(xWiFi_T* wifi, xWiFi_ObjectRequestSelector selector, void* arg)
 {
-	switch ((uint8_t)selector)
+	switch ((int)selector)
 	{
 		default: return xResultRequestIsNotFound;
 	}
@@ -60,10 +60,10 @@ void Internal_WiFi_ComponentTimeSynchronization()
 
 WiFi_AdapterT WiFi_Adapter;
 //------------------------------------------------------------------------------
-static xWiFi_SysInterfaceT PrivateSysInterface =
+static xWiFi_ObjectInterfaceT PrivateSysInterface =
 {
-	.RequestListener = (xWiFi_SysRequestListenerT)RequestListener,
-	.EventListener = (xWiFi_SysEventListenerT)EventListener
+	.RequestListener = (xObjectRequestListenerT)RequestListener,
+	.EventListener = (xObjectEventListenerT)EventListener
 };
 
 //==============================================================================

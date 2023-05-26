@@ -147,11 +147,11 @@ static void PrivateRxReceiverEventListener(xRxReceiverT* receiver, xRxReceiverEv
 	switch ((uint8_t)event)
 	{
 		case xRxReceiverEventEndLine:
-			xPortEventListener(port, xPortSysEventRxFoundEndLine, arg);
+			xPortEventListener(port, xPortObjectEventRxFoundEndLine, arg);
 			break;
 
 		case xRxReceiverEventBufferIsFull:
-			xPortEventListener(port, xPortSysEventRxBufferIsFull, arg);
+			xPortEventListener(port, xPortObjectEventRxBufferIsFull, arg);
 			break;
 
 		default: return;

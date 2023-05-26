@@ -27,20 +27,20 @@ xPortT UsartPort;
 //==============================================================================
 //functions:
 
-static void EventListener(xPortT* port, xPortSysEventSelector selector, void* arg)
+static void EventListener(xPortT* port, xPortObjectEventSelector selector, void* arg)
 {
 	switch((int)selector)
 	{
-		case xPortSysEventRxFoundEndLine:
+		case xPortObjectEventRxFoundEndLine:
 			TerminalReceiveData(port,
-								((xPortSysEventDataPacketArgT*)arg)->Data,
-								((xPortSysEventDataPacketArgT*)arg)->Size);
+								((xPortEventDataPacketArgT*)arg)->Data,
+								((xPortEventDataPacketArgT*)arg)->Size);
 			break;
 
-		case xPortSysEventRxBufferIsFull:
+		case xPortObjectEventRxBufferIsFull:
 			TerminalReceiveData(port,
-								((xPortSysEventDataPacketArgT*)arg)->Data,
-								((xPortSysEventDataPacketArgT*)arg)->Size);
+								((xPortEventDataPacketArgT*)arg)->Data,
+								((xPortEventDataPacketArgT*)arg)->Size);
 			break;
 
 		default: break;
@@ -48,9 +48,9 @@ static void EventListener(xPortT* port, xPortSysEventSelector selector, void* ar
 }
 //------------------------------------------------------------------------------
 
-static xResult RequestListener(xPortT* port, xPortSysRequestSelector selector, void* arg)
+static xResult RequestListener(xPortT* port, xPortObjectRequestSelector selector, void* arg)
 {
-	switch ((uint8_t)selector)
+	switch ((int)selector)
 	{
 		default: return xResultRequestIsNotFound;
 	}
@@ -109,10 +109,10 @@ static UsartPortAdapterT PrivateUsartPortAdapter =
 };
 //------------------------------------------------------------------------------
 
-static xPortSysInterfaceT PrivatePortSysInterface =
+static xPortObjectInterfaceT objectInterface =
 {
-	.RequestListener = (xPortSysRequestListenerT)RequestListener,
-	.EventListener = (xPortSysEventListenerT)EventListener
+	.RequestListener = (xObjectRequestListenerT)RequestListener,
+	.EventListener = (xObjectEventListenerT)EventListener
 };
 //==============================================================================
 //component initialization:
@@ -124,7 +124,12 @@ xResult UsartPortComponentInit(void* parent)
 
 	UsartPortAdapterInit(&UsartPort, &PrivateUsartPortAdapter);
 	
-	xPortInit(&UsartPort, parent, &PrivatePortSysInterface);
+	xPortInitT port_init =
+	{
+		.Parent = parent,
+		.Interface = &objectInterface
+	};
+	xPortInit(&UsartPort, &port_init);
   
 	return xResultAccept;
 }

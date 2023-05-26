@@ -1,25 +1,16 @@
 //==============================================================================
-#ifndef _COMPONENTS_SELECTOR_H_
-#define _COMPONENTS_SELECTOR_H_
-//------------------------------------------------------------------------------
+//header:
+
+#ifndef _MQTT_COMPONENT_H_
+#define _MQTT_COMPONENT_H_
+//==============================================================================
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 //==============================================================================
 //includes:
 
-
-//==============================================================================
-//components:
-
-#include "Terminal/Terminal_Component.h"
-//#include "TCPServer/TCPServer_WIZspiComponent.h"
-#include "TcpServer/LWIP/LWIP-NetTcpServer-Component.h"
-#include "MQTT/MQTT-Component.h"
-#include "sfc_spi/sfc_spi_component.h"
-#include "SerialPort/UsartPort-Component.h"
-#include "ADC/ADC-Component.h"
-#include "WiFi/WiFi-Component.h"
+#include "MQTT-ComponentConfig.h"
 //==============================================================================
 //defines:
 
@@ -29,9 +20,25 @@ extern "C" {
 
 
 //==============================================================================
+//functions:
+
+xResult MQTT_ComponentInit(void* parent);
+
+void MQTT_ComponentHandler();
+
+#define MQTT_ComponentTimeSynchronization()
+#define MQTT_ComponentIRQ()
+//==============================================================================
+//import:
+
+
+//==============================================================================
+//export:
+
+
+//==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //_COMPONENTS_SELECTOR_H_
-
+#endif //_MQTT_COMPONENT_H_

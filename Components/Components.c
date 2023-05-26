@@ -74,12 +74,13 @@ xResult ComponentsInit(void* parent)
 	xSystemInit(parent);
 	
 	UsartPortComponentInit(parent);
-	//ADC_ComponentInit(parent);
 	WiFi_ComponentInit(parent);
-	LWIP_NetTcpServerComponentInit(parent);
-	//TransferLayerComponentInit(parent);
 
-	//TerminalTxBind(&SerialPortUART.Tx);
+	//ADC_ComponentInit(parent);
+
+	//LWIP_NetTcpServerComponentInit(parent);
+	MQTT_ComponentInit(parent);
+	//TransferLayerComponentInit(parent);
 
 	return xResultAccept;
 }
