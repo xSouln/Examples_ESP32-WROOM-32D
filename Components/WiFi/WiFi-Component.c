@@ -3,6 +3,8 @@
 
 #include "WiFi-Component.h"
 #include "Adapters/WiFi-Adapter.h"
+
+#include "Components.h"
 //==============================================================================
 //defines:
 
@@ -45,7 +47,7 @@ static xResult RequestListener(xWiFi_T* wifi, xWiFi_ObjectRequestSelector select
  */
 void Internal_WiFi_ComponentHandler()
 {
-
+	xWiFi_Handler(&mWifi);
 }
 //------------------------------------------------------------------------------
 /**
@@ -69,10 +71,10 @@ static xWiFi_ObjectInterfaceT PrivateSysInterface =
 //==============================================================================
 static void WiFi_Task(void* arg)
 {
-	WiFi_AdapterInitializationT adapter_init;
-	WiFi_AdapterInit(&mWifi, &WiFi_Adapter, &adapter_init);
+	WiFi_AdapterInitT adapter_init;
+	WiFi_AdapterInit(&mWifi, &adapter_init);
 
-	xWiFi_InitializationT init =
+	xWiFi_InitT init =
 	{
 		.Parent = WiFi_Task,
 		.Number = 0,
@@ -109,16 +111,20 @@ xResult WiFi_ComponentInit(void* parent)
 								&wifi_task_buffer);
 								*/
 
-	WiFi_AdapterInitializationT adapter_init;
-	WiFi_AdapterInit(&mWifi, &WiFi_Adapter, &adapter_init);
+	xWiFi_Core.TransactionPort = &UsartPort;
 
-	xWiFi_InitializationT init =
+	WiFi_AdapterInitT adapter_init =
+	{
+		.Adapter = &WiFi_Adapter
+	};
+	WiFi_AdapterInit(&mWifi, &adapter_init);
+
+	xWiFi_InitT init =
 	{
 		.Parent = WiFi_Task,
 		.Number = 0,
 		.Interface = &PrivateSysInterface
 	};
-
 	xWiFi_Init(&mWifi, &init);
 
 	xWiFi_ConfigT config =
@@ -126,7 +132,6 @@ xResult WiFi_ComponentInit(void* parent)
 		.SSID = WIFI_SSID,
 		.Password = WIFI_Password
 	};
-
 	xWiFi_SetConfig(&mWifi, &config);
 
   return xResultAccept;

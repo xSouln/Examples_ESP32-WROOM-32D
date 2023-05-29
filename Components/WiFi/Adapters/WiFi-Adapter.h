@@ -41,13 +41,13 @@ typedef struct
 //------------------------------------------------------------------------------
 typedef struct
 {
-	uint8_t Idle;
+	WiFi_AdapterT* Adapter;
 	
-} WiFi_AdapterInitializationT;
+} WiFi_AdapterInitT;
 //==============================================================================
 //functions:
 
-xResult WiFi_AdapterInit(xWiFi_T* wifi, WiFi_AdapterT* adapter, WiFi_AdapterInitializationT* initialization);
+xResult WiFi_AdapterInit(xWiFi_T* wifi, WiFi_AdapterInitT* init);
 //==============================================================================
 #ifdef __cplusplus
 }

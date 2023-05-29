@@ -119,7 +119,7 @@ static void Task(void* arg)
 	{
 		vTaskDelay(pdMS_TO_TICKS(1));
 
-		if (mWifi.Status.AddressIsSet && !State.IsInit)
+		if (mWifi.Status.State == xWiFi_StateConnected && !State.IsInit)
 		{
 			esp_mqtt_client_config_t mqtt_cfg =
 			{

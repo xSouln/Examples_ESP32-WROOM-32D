@@ -2,9 +2,9 @@
 //includes:
 
 #include "WiFi-Adapter.h"
+#include "Communications/xWiFi-RxEvents.h"
 
 #include "esp_wifi.h"
-#include "esp_event.h"
 #include "esp_mac.h"
 #include "esp_event_loop.h"
 
@@ -81,10 +81,12 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 			case WIFI_EVENT_STA_START:
 				esp_wifi_connect();
 				wifi->Status.IsStarted = true;
+				wifi->Status.State = xWiFi_StateConnecting;
 				break;
 
 			case WIFI_EVENT_STA_DISCONNECTED:
 				esp_wifi_connect();
+				wifi->Status.State = xWiFi_StateConnecting;
 				break;
 
 			case WIFI_EVENT_STA_STOP:
@@ -106,13 +108,13 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 				adapter->Internal.address.Netmask = event->ip_info.netmask.addr;
 				adapter->Internal.address.Gateway = event->ip_info.gw.addr;
 
-				wifi->Status.AddressIsSet = true;
+				wifi->Status.State = xWiFi_StateConnected;
 				break;
 
 			case IP_EVENT_STA_LOST_IP:
 				memset(&adapter->Internal.address, 0, sizeof(adapter->Internal.address));
 
-				wifi->Status.AddressIsSet = false;
+				wifi->Status.State = xWiFi_StateIdle;
 				break;
 			
 			default:
@@ -154,15 +156,17 @@ static xResult PrivateRequestSetConfig(xWiFi_T* wifi, xWiFi_ConfigT* request)
 static xResult PrivateRequestEnable(xWiFi_T* wifi)
 {
 	esp_err_t err = esp_wifi_start();
+	wifi->Status.IsEnable = err == ESP_OK;
 	
-	return xResultAccept;
+	return err == ESP_OK ? xResultAccept : xResultError;
 }
 //------------------------------------------------------------------------------
 static xResult PrivateRequestDisable(xWiFi_T* wifi)
 {
-	ESP_ERROR_CHECK(esp_wifi_stop());
+	esp_err_t err = esp_wifi_stop();
+	wifi->Status.IsEnable = false;
 
-	return xResultAccept;
+	return err == ESP_OK ? xResultAccept : xResultError;
 }
 //------------------------------------------------------------------------------
 static xResult PrivateRequestInit(xWiFi_T* wifi)
@@ -182,6 +186,8 @@ static xResult PrivateRequestInit(xWiFi_T* wifi)
 	ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, wifi));
 	ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_LOST_IP, &event_handler, wifi));
 
+	wifi->Status.IsInit = true;
+
 	return xResultAccept;
 }
 //==============================================================================
@@ -196,14 +202,14 @@ static xWiFi_InterfaceT PrivateInterface =
 	.EventListener = (xWiFi_EventListenerT)PrivateEventListener,
 };
 //------------------------------------------------------------------------------
-xResult WiFi_AdapterInit(xWiFi_T* wifi, WiFi_AdapterT* adapter, WiFi_AdapterInitializationT* initialization)
+xResult WiFi_AdapterInit(xWiFi_T* wifi, WiFi_AdapterInitT* init)
 {
-	if (!wifi || !adapter || !initialization)
+	if (!wifi || !init || !init->Adapter)
 	{
 		return xResultLinkError;
 	}
 
-	wifi->Adapter = adapter;
+	wifi->Adapter = init->Adapter;
 
 	wifi->Adapter->Base.Parent = wifi;
 	wifi->Adapter->Base.Note = nameof(WiFi_AdapterT);

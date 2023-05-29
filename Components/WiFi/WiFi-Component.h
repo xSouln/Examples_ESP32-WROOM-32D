@@ -29,7 +29,7 @@ xResult WiFi_ComponentInit(void* parent);
 //==============================================================================
 //overrides:
 
-#define WiFi_ComponentHandler()
+#define WiFi_ComponentHandler() Internal_WiFi_ComponentHandler()
 #define WiFi_ComponentTimeSynchronization()
 //==============================================================================
 //export:

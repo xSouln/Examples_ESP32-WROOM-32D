@@ -86,7 +86,7 @@ static xResult PrivateRequestListener(ObjectBaseT* object, int selector, void* a
 //------------------------------------------------------------------------------
 static void Task(void* arg)
 {
-	xWiFi_StatusT last_status;
+	xWiFi_States last_state = xWiFi_StateIdle;
 	static char data[512];
 	int data_size = 0;
 	char* result;
@@ -97,9 +97,9 @@ static void Task(void* arg)
 	{
 		vTaskDelay(pdMS_TO_TICKS(1));
 
-		if (mWifi.Status.AddressIsSet)
+		if (mWifi.Status.State == xWiFi_StateConnected)
 		{
-			if (!last_status.AddressIsSet)
+			if (last_state != mWifi.Status.State)
 			{
 				if (xNetInitTcpSocket(&LWIP_Net, &ListenSocket) == xResultAccept)
 				{
@@ -149,7 +149,7 @@ static void Task(void* arg)
 			xPortHandler(&ServerPort);
 		}
 
-		last_status.Value = mWifi.Status.Value;
+		last_state = mWifi.Status.State;
 	}
 }
 //==============================================================================

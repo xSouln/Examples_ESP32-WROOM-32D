@@ -29,6 +29,7 @@ list(APPEND srcs
     ${COMMON_LIB_DIR}/Common/xADC/Communications/xADC-RxTransactions.c
     ${COMMON_LIB_DIR}/Common/xSystem/xSystem.c
     ${COMMON_LIB_DIR}/Common/xWiFi/Communications/xWiFi-RxTransactions.c
+    ${COMMON_LIB_DIR}/Common/xWiFi/Communications/xWiFi-RxEvents.c
     ${COMMON_LIB_DIR}/Common/xWiFi/xWiFi.c
     ${COMMON_LIB_DIR}/Common/xNet/Communications/xNet-RxTransactions.c
     ${COMMON_LIB_DIR}/Common/xNet/xNet.c
