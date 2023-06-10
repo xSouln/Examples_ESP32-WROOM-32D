@@ -17,15 +17,6 @@ static void PrivateHandler(xPortT* port)
 
 	//uart_get_buffered_data_len(adapter->UART_NUM, &rx_data_len);
 	xRxReceiverRead(&adapter->RxReceiver, &adapter->Data.RxCircleBuffer);
-/*
-	if (adapter->Data.TxBuffer.DataSize)
-	{
-		if (uart_write_bytes(adapter->UART_NUM, adapter->Data.TxBuffer.Data, adapter->Data.TxBuffer.DataSize) != -1)
-		{
-			xDataBufferClear(&adapter->Data.TxBuffer);
-		}
-	}
-	*/
 
 	tx_data_size = xCircleBufferGetLine(&adapter->Data.TxCircleBuffer, &tx_data_ptr);
 
@@ -114,22 +105,7 @@ static void PrivateEventListener(xPortT* port, xPortEventSelector selector, void
 static int PrivateTransmit(xPortT* port, void* data, uint32_t size)
 {
 	register UsartPortAdapterT* adapter = (UsartPortAdapterT*)port->Adapter;
-
-	int offset = 0;
-	uint8_t* ptr = data;
-/*
-	do
-	{
-		int result = uart_write_bytes(adapter->UART_NUM, ptr + offset, size - offset);
-
-		if (result != -1)
-		{
-			offset += result;
-		}
-		
-	} while (offset < size);
-*/
-	//xDataBufferAdd(&adapter->Data.TxBuffer, data, size);
+	
 	xCircleBufferAdd(&adapter->Data.TxCircleBuffer, data, size);
 
 	return xResultAccept;

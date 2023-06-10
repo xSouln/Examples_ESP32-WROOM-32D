@@ -14,6 +14,7 @@ extern "C" {
 #include "Common/xRxReceiver.h"
 #include "Common/xDataBuffer.h"
 #include "esp_adc/adc_continuous.h"
+#include "esp_adc/adc_oneshot.h"
 //==============================================================================
 //types:
 

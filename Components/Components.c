@@ -42,8 +42,9 @@ void ComponentsHandler()
 {
 	TerminalComponentHandler();
 	UsartPortComponentHandler();
-	//ADC_ComponentHandler();
 	WiFi_ComponentHandler();
+	MQTT_ComponentHandler();
+	//ADC_ComponentHandler();
 	//TransferLayerComponentHandler();
 
 	if (xSystemGetTime(ComponentsHandler) - led_toggle_time_stamp > 999)
@@ -76,11 +77,11 @@ xResult ComponentsInit(void* parent)
 	UsartPortComponentInit(parent);
 	WiFi_ComponentInit(parent);
 
-	//ADC_ComponentInit(parent);
-
-	//LWIP_NetTcpServerComponentInit(parent);
+	LWIP_NetTcpServerComponentInit(parent);
 	MQTT_ComponentInit(parent);
 	//TransferLayerComponentInit(parent);
+
+	ADC_ComponentInit(parent);
 
 	return xResultAccept;
 }

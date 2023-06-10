@@ -91,6 +91,10 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 
 			case WIFI_EVENT_STA_STOP:
 				wifi->Status.IsStarted = false;
+
+				memset(&adapter->Internal.address, 0, sizeof(adapter->Internal.address));
+
+				wifi->Status.State = xWiFi_StateIdle;
 				break;
 			
 			default:

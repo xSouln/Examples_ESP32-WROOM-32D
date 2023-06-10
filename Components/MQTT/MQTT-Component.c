@@ -19,6 +19,7 @@ static StackType_t task_stack[TASK_STACK_SIZE];
 static struct
 {
 	uint32_t IsInit : 1;
+	uint32_t IsSubscribed : 1;
 
 } State;
 
@@ -56,57 +57,73 @@ static xResult RequestListener(ObjectBaseT* object, int selector, void* arg)
  */
 void MQTT_ComponentHandler()
 {
+	static uint32_t time_stamp = 0;
 
+	if (xSystemGetTime(MQTT_ComponentHandler) - time_stamp > 1000)
+	{
+		time_stamp = xSystemGetTime(MQTT_ComponentHandler);
+
+		if (MqttClient && State.IsSubscribed)
+		{
+			esp_mqtt_client_publish(MqttClient, "/topic/adc", "update adc data", 0, 0, 0);
+		}
+	}
 }
 
-static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
+static void mqtt_event_handler_cb(void* handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
+    esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
+	char* note = "mqtt_event_handler_cb\r";
 
-    switch (event->event_id)
+    switch (event_id)
 	{
         case MQTT_EVENT_CONNECTED:
             // Подписываемся на нужные топики
-            //msg_id = esp_mqtt_client_subscribe(client, "/topic/sub", 0);
-
-			xPortStartTransmission(&UsartPort);
-			xPortTransmitString(&UsartPort, "MQTT_EVENT_CONNECTED\r");
-			xPortEndTransmission(&UsartPort);
+            msg_id = esp_mqtt_client_subscribe(client, "/topic/adc", 0);
+			note = "MQTT_EVENT_CONNECTED\r";
             break;
 
         case MQTT_EVENT_DISCONNECTED:
-			xPortStartTransmission(&UsartPort);
-			xPortTransmitString(&UsartPort, "MQTT_EVENT_DISCONNECTED\r");
-			xPortEndTransmission(&UsartPort);
+			note = "MQTT_EVENT_DISCONNECTED\r";
+			State.IsSubscribed = false;
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
             // Отправляем сообщение после подписки
             //msg_id = esp_mqtt_client_publish(client, "/topic/pub", "Hello MQTT", 0, 0, 0);
+			State.IsSubscribed = true;
+			note = "MQTT_EVENT_SUBSCRIBED\r";
             break;
 
         case MQTT_EVENT_UNSUBSCRIBED:
+			note = "MQTT_EVENT_UNSUBSCRIBED\r";
+			State.IsSubscribed = false;
             break;
 
         case MQTT_EVENT_PUBLISHED:
+			note = "MQTT_EVENT_PUBLISHED\r";
             break;
 
         case MQTT_EVENT_DATA:
             // Обработка полученных данных
             //printf("Received data: %.*s\n", event->data_len, event->data);
+			note = "MQTT_EVENT_DATA\r";
             break;
 
         case MQTT_EVENT_ERROR:
-			xPortStartTransmission(&UsartPort);
-			xPortTransmitString(&UsartPort, "MQTT_EVENT_ERROR\r");
-			xPortEndTransmission(&UsartPort);
+			note = "MQTT_EVENT_ERROR\r";
             break;
 
         default:
+			note = "MQTT_EVENT_ANY\r";
             break;
     }
-    return ESP_OK;
+
+	xPortStartTransmission(&UsartPort);
+	xPortTransmitString(&UsartPort, note);
+	xPortEndTransmission(&UsartPort);
 }
 //------------------------------------------------------------------------------
 static void Task(void* arg)
@@ -123,7 +140,6 @@ static void Task(void* arg)
 		{
 			esp_mqtt_client_config_t mqtt_cfg =
 			{
-				//.broker.address.uri = "mqtt://127.0.0.10",
 				.broker.address.uri = "mqtt://192.168.0.110:1883",
 				.broker.address.port = 1883,
 				//.broker.address.hostname = "127.0.0.10",
@@ -160,6 +176,12 @@ static void Task(void* arg)
 			xPortEndTransmission(&UsartPort);
 
 			State.IsInit = true;
+		}
+		else if (mWifi.Status.State == xWiFi_StateIdle && State.IsInit)
+		{
+			esp_mqtt_client_destroy(MqttClient);
+			MqttClient = NULL;
+			State.IsInit = false;
 		}
 	}
 }

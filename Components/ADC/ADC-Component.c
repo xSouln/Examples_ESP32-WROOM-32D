@@ -8,8 +8,13 @@
 //defines:
 
 #define ADC_POINTS_BUFFER_SIZE_MASK 0x1ff
+#define TASK_STACK_SIZE 0x1400
 //==============================================================================
 //variables:
+
+static TaskHandle_t task_handle;
+static StaticTask_t task_buffer;
+static StackType_t task_stack[TASK_STACK_SIZE];
 
 struct
 {
@@ -55,6 +60,9 @@ void ADC_ComponentIRQ()
  */
 void ADC_ComponentHandler()
 {
+	static char data[250];
+	static int data_size;
+
 	static uint32_t time_stamp = 0;
 
 	xADC_Handler(&mADC);
@@ -62,23 +70,7 @@ void ADC_ComponentHandler()
 	if (mADC.NotifiedChannels)
 	{
 		int number_of_points = xADC_GetNumberOfNewPoints(&mADC);
-/*
-		if (xSystemGetTime(ADC_ComponentHandler) - time_stamp > 100)
-		{
-			PointsPacket.Header.Channels = 0x3;
-			PointsPacket.Header.PointsCount = 128;
-			PointsPacket.Header.PointSize = SIZE_ELEMENT(PointsPacket.Buffer);
-
-			xRxTransactionTransmitEvent(&UsartPort,
-					mADC.Base.Description->ObjectId,
-					TRANSACTION_EVENT_NEW_POTINTS,
-					&PointsPacket, sizeof(PointsPacket));
-
-			time_stamp = xSystemGetTime(ADC_ComponentHandler);
-		}
-
-		return;
-*/
+		
 		if (xSystemGetTime(ADC_ComponentHandler) - time_stamp > 100 || number_of_points > 256)
 		{
 			number_of_points = xCircleBufferReadObject(&mADC.Points->Buffer, PointsPacket.Buffer, 256, 0, 0);
@@ -89,10 +81,18 @@ void ADC_ComponentHandler()
 				PointsPacket.Header.PointsCount = number_of_points;
 				PointsPacket.Header.PointSize = SIZE_ELEMENT(PointsPacket.Buffer);
 
+				xArgT args[] =
+				{
+					{
+						.Element = &PointsPacket,
+						.Size = sizeof(PointsPacket.Header) + mADC.Points->Buffer.TypeSize * number_of_points
+					}
+				};
+
 				xRxTransactionTransmitEvent(&UsartPort,
 						mADC.Base.Description->ObjectId,
 						TRANSACTION_EVENT_NEW_POTINTS,
-						&PointsPacket, sizeof(PointsPacket.Header) + mADC.Points->Buffer.TypeSize * number_of_points);
+						args, 1);
 			}
 
 			time_stamp = xSystemGetTime(ADC_ComponentHandler);
@@ -107,7 +107,18 @@ void ADC_ComponentTimeSynchronization()
 {
 
 }
+//------------------------------------------------------------------------------
+static void Task(void* arg)
+{
+	xSystemDelay(Task, 10000);
 
+	while (true)
+	{
+		ADC_ComponentHandler();
+		
+		xSystemDelay(Task, 1);
+	}
+}
 //==============================================================================
 //initialization:
 
@@ -159,7 +170,18 @@ xResult ADC_ComponentInit(void* parent)
 
 	xADC_InitChannels(&mADC, &channel_init);
 
-	xADC_Start(&mADC);
+	task_handle =
+			xTaskCreateStatic(Task, // Function that implements the task.
+								"adc task", // Text name for the task.
+								TASK_STACK_SIZE, // Number of indexes in the xStack array.
+								NULL, // Parameter passed into the task.
+								5, // Priority at which the task is created.
+								task_stack, // Array to use as the task's stack.
+								&task_buffer);
+
+	mADC.NotifiedChannels = 0;
+
+	//xADC_Start(&mADC);
   
 	return xResultAccept;
 }
