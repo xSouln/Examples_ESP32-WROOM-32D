@@ -57,6 +57,11 @@ static xResult PrivateRequestListener(void* object, xNetRequestSelector selector
 		{
 			xNetSocketT* sock = arg;
 
+			if (sock->Number != -1)
+			{
+				return xResultError;
+			}
+
 			sock->Number = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
 			if (sock->Number < 0)

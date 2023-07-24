@@ -64,7 +64,7 @@ void ADC_ComponentHandler()
 	static int data_size;
 
 	static uint32_t time_stamp = 0;
-
+	
 	xADC_Handler(&mADC);
 
 	if (mADC.NotifiedChannels)
@@ -89,7 +89,7 @@ void ADC_ComponentHandler()
 					}
 				};
 
-				xRxTransactionTransmitEvent(&UsartPort,
+				xRxTransactionTransmitEvent(mADC.EventPort,
 						mADC.Base.Description->ObjectId,
 						TRANSACTION_EVENT_NEW_POTINTS,
 						args, 1);

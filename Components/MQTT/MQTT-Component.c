@@ -5,25 +5,46 @@
 
 #include "esp_netif.h"
 #include "mqtt_client.h"
+
+#include "Common/xMQTT/xMQTT.h"
+#include "Adapters/MQTT-Port-Adapter.h"
 //==============================================================================
 //defines:
 
 #define TASK_STACK_SIZE 0x1400
+
+#define RX_BUFFER_SIZE 0x800
+#define TX_BUFFER_SIZE 0x1000
 //==============================================================================
 //variables:
+
+static uint8_t private_rx_buffer[RX_BUFFER_SIZE];
+static uint8_t private_tx_buffer[RX_BUFFER_SIZE];
 
 static TaskHandle_t task_handle;
 static StaticTask_t task_buffer;
 static StackType_t task_stack[TASK_STACK_SIZE];
 
+static const char MqttAdcTxTopic[] = "/topic/adc";
+static const char MqttRxTopic[] = "/topic/rx";
+
 static struct
 {
 	uint32_t IsInit : 1;
-	uint32_t IsSubscribed : 1;
 
 } State;
 
 esp_mqtt_client_handle_t MqttClient;
+xMqttClientT mMqttClient;
+xPortT MqttPort;
+
+xMqttTopicT MqttAdcTopic =
+{
+	.Client = &mMqttClient,
+
+	.TxTopic = (char*)MqttAdcTxTopic,
+	.RxTopic = (char*)MqttRxTopic,
+};
 //==============================================================================
 //import:
 
@@ -31,16 +52,37 @@ esp_mqtt_client_handle_t MqttClient;
 //==============================================================================
 //functions:
 
-static void EventListener(ObjectBaseT* object, int selector, void* arg)
+static void PrivateEventListener(ObjectBaseT* object, int selector, void* arg)
 {
-	switch(selector)
+	if (object->Description->ObjectId == xPORT_OBJECT_ID)
 	{
-		default: break;
+		xPortT* port = object;
+
+		switch (selector)
+		{
+			case xPortObjectEventRxFoundEndLine:
+			{
+				xPortEventDataPacketArgT* packet = arg;
+
+				TerminalReceiveData(port, packet->Data, packet->Size);
+			}
+			break;
+
+			case xPortObjectEventRxBufferIsFull:
+			{
+				xPortEventDataPacketArgT* packet = arg;
+
+				TerminalReceiveData(port, packet->Data, packet->Size);
+			}
+			break;
+
+			default : return;
+		}
 	}
 }
 //------------------------------------------------------------------------------
 
-static xResult RequestListener(ObjectBaseT* object, int selector, void* arg)
+static xResult PrivateRequestListener(ObjectBaseT* object, int selector, void* arg)
 {
 	switch (selector)
 	{
@@ -58,16 +100,39 @@ static xResult RequestListener(ObjectBaseT* object, int selector, void* arg)
 void MQTT_ComponentHandler()
 {
 	static uint32_t time_stamp = 0;
+	static uint16_t points[100][2];
+	static char json[4096];
+	static int jsonSize;
 
 	if (xSystemGetTime(MQTT_ComponentHandler) - time_stamp > 1000)
 	{
 		time_stamp = xSystemGetTime(MQTT_ComponentHandler);
-
-		if (MqttClient && State.IsSubscribed)
+	}
+/*
+	if (mADC.NotifiedChannels && mMqttClient.State == xMqttClientConnected)
+	{
+		int number_of_points = xADC_GetNumberOfNewPoints(&mADC);
+		
+		if (number_of_points > 100)
 		{
-			esp_mqtt_client_publish(MqttClient, "/topic/adc", "update adc data", 0, 0, 0);
+			number_of_points = xCircleBufferReadObject(&mADC.Points->Buffer, points, 100, 0, 0);
+
+			json[0] = '[';
+			jsonSize = 1;
+
+			for (int i = 0; i < 100; i++)
+			{
+				jsonSize += sprintf(json + jsonSize, "%u, ", points[i][0]);
+			}
+			
+			json[jsonSize - 1] = ']';
+			json[jsonSize] = 0;
+
+			//esp_mqtt_client_publish(MqttClient, MqttAdcTopic.TxTopic, json, 0, 0, 0);
+			xPortTransmitData(&MqttPort, json, jsonSize);
 		}
 	}
+	*/
 }
 
 static void mqtt_event_handler_cb(void* handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
@@ -81,25 +146,36 @@ static void mqtt_event_handler_cb(void* handler_args, esp_event_base_t base, int
 	{
         case MQTT_EVENT_CONNECTED:
             // Подписываемся на нужные топики
-            msg_id = esp_mqtt_client_subscribe(client, "/topic/adc", 0);
+            //msg_id = esp_mqtt_client_subscribe(client, "/topic/adc", 0);
+			MqttAdcTopic.Id = esp_mqtt_client_subscribe(client, MqttAdcTopic.RxTopic, 0);
 			note = "MQTT_EVENT_CONNECTED\r";
+			mMqttClient.State = xMqttClientConnected;
             break;
 
         case MQTT_EVENT_DISCONNECTED:
 			note = "MQTT_EVENT_DISCONNECTED\r";
-			State.IsSubscribed = false;
+			mMqttClient.State = xMqttClientIdle;
+			MqttAdcTopic.State = xMqttTopicIdle;
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
             // Отправляем сообщение после подписки
             //msg_id = esp_mqtt_client_publish(client, "/topic/pub", "Hello MQTT", 0, 0, 0);
-			State.IsSubscribed = true;
-			note = "MQTT_EVENT_SUBSCRIBED\r";
+			
+			if (MqttAdcTopic.Id == event->msg_id)
+			{
+				MqttAdcTopic.State = xMqttTopicSubscribed;
+				note = "MQTT_EVENT_SUBSCRIBED ACCEPT\r";
+			}
+			else
+			{
+				note = "MQTT_EVENT_SUBSCRIBED\r";
+			}
             break;
 
         case MQTT_EVENT_UNSUBSCRIBED:
 			note = "MQTT_EVENT_UNSUBSCRIBED\r";
-			State.IsSubscribed = false;
+			MqttAdcTopic.State = xMqttTopicIdle;
             break;
 
         case MQTT_EVENT_PUBLISHED:
@@ -109,7 +185,21 @@ static void mqtt_event_handler_cb(void* handler_args, esp_event_base_t base, int
         case MQTT_EVENT_DATA:
             // Обработка полученных данных
             //printf("Received data: %.*s\n", event->data_len, event->data);
+
+			xMqttTopicDataReceiverArgT arg =
+			{
+				.Base =
+				{
+					.Data = (uint8_t*)event->data,
+					.Size = event->data_len - 1,
+					.Content = event,
+				},
+				.Topic = &MqttAdcTopic
+			};
+			xPortAdapterEventListener(MqttAdcTopic.Handle, xPortEventReceiveData, &arg);
+
 			note = "MQTT_EVENT_DATA\r";
+
             break;
 
         case MQTT_EVENT_ERROR:
@@ -141,13 +231,17 @@ static void Task(void* arg)
 			esp_mqtt_client_config_t mqtt_cfg =
 			{
 				.broker.address.uri = "mqtt://192.168.0.110:1883",
+				//.broker.address.uri = "mqtt://86.57.154.232",
 				.broker.address.port = 1883,
+				//.credentials.username = "sample",
+				//.credentials.authentication.password = "69greystones",
 				//.broker.address.hostname = "127.0.0.10",
 				//.broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
 				.credentials.authentication.use_secure_element = false
 			};
 
 			MqttClient = esp_mqtt_client_init(&mqtt_cfg);
+			mMqttClient.Handle = MqttClient;
 
 			if (esp_mqtt_client_register_event(MqttClient, ESP_EVENT_ANY_ID, mqtt_event_handler_cb, MqttClient) != ESP_OK)
 			{
@@ -182,18 +276,48 @@ static void Task(void* arg)
 			esp_mqtt_client_destroy(MqttClient);
 			MqttClient = NULL;
 			State.IsInit = false;
+			mMqttClient.Handle = NULL;
 		}
+
+		xPortHandler(&MqttPort);
 	}
 }
 //==============================================================================
 //initialization:
 
+MqttPortAdapterT MqttPortAdapter;
 
+static xPortObjectInterfaceT objectInterface =
+{
+	.RequestListener = (xObjectRequestListenerT)PrivateRequestListener,
+	.EventListener = (xObjectEventListenerT)PrivateEventListener
+};
 //==============================================================================
 //component initialization:
 
 xResult MQTT_ComponentInit(void* parent)
 {
+	MqttPortAdapterInitT adapter_init =
+	{
+		.Adapter = &MqttPortAdapter,
+		.RxBuffer = private_rx_buffer,
+		.RxBufferSize = sizeof(private_rx_buffer),
+		.TxBuffer = private_tx_buffer,
+		.TxBufferSize = sizeof(private_tx_buffer),
+	};
+	MqttPortAdapterInit(&MqttPort, &adapter_init);
+
+	xPortInitT port_init =
+	{
+		.Parent = parent,
+		.Interface = &objectInterface
+	};
+	xPortInit(&MqttPort, &port_init);
+
+	xPortSetBinding(&MqttPort, &MqttAdcTopic);
+	
+	MqttAdcTopic.Client = &mMqttClient;
+
 	task_handle =
 			xTaskCreateStatic(Task, // Function that implements the task.
 								"Tcp server task", // Text name for the task.

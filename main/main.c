@@ -109,19 +109,6 @@ void app_main(void)
             out_data_size = 0;
 
             time_stamp_1000ms = xSystemGetTime(app_main);
-            //ESP_LOGI(TAG, "%s", "tic\r");
-/*
-            out_data_size = sprintf(out_data,
-                "is init: %d\r"
-                "channel 1: %d\r"
-                "channel 2: %d\r\r",
-                mADC.Handle != 0,
-                mADC.Channels[0].Points.InShort[0],
-                mADC.Channels[1].Points.InShort[0]
-            );
-            
-            xPortTransmitData(&UsartPort, out_data, out_data_size);
-            */
         }
 
         vTaskDelay(pdMS_TO_TICKS(1));

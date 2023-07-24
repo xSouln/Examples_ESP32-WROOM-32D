@@ -1,51 +1,31 @@
 //==============================================================================
 //includes:
 
-#include "LWIP-NetPort-Adapter.h"
-#include "lwip/err.h"
-#include "lwip/sockets.h"
-#include "lwip/sys.h"
-#include "lwip/netdb.h"
+#include "MQTT-Port-Adapter.h"
+#include "mqtt_client.h"
 //==============================================================================
 //functions:
 
 static void PrivateHandler(xPortT* port)
 {
-	register LWIP_NetPortAdapterT* adapter = (LWIP_NetPortAdapterT*)port->Adapter;
-	xNetSocketT* socket = port->Binding;
+	register MqttPortAdapterT* adapter = (MqttPortAdapterT*)port->Adapter;
+	xMqttTopicT* topic = port->Binding;
 
-	xNetSocketHandler(socket);
-
-	if (socket != NULL && socket->Number != -1)
+	if (!topic)
 	{
-		int rcvbuf = adapter->RxOperationBufferSize;
-    	//socklen_t optlen = sizeof(rcvbuf);
+		return;
+	}
 
-		//if (getsockopt(socket->Number, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &optlen) == 0 && rcvbuf > 0)
-		{
-			if (rcvbuf > adapter->RxOperationBufferSize)
-			{
-				rcvbuf = adapter->RxOperationBufferSize;
-			}
-
-			if (rcvbuf)
-			{
-				int len = xNetReceive(socket, adapter->RxOperationBuffer, rcvbuf);
-
-				if (len > 0)
-				{
-					xRxReceiverReceive(&adapter->RxReceiver, adapter->RxOperationBuffer, len);
-				}
-			}
-		}
+	if (topic->Client->State == xMqttClientConnected && adapter->TxBuffer.DataSize)
+	{
+		xSemaphoreTake(adapter->TransactionMutex, portMAX_DELAY);
 
 		if (adapter->TxBuffer.DataSize)
 		{
-			xSemaphoreTake(adapter->TransactionMutex, portMAX_DELAY);
-			xNetTransmit(socket, adapter->TxBuffer.Data, adapter->TxBuffer.DataSize);
+			esp_mqtt_client_publish(topic->Client->Handle, topic->TxTopic, (char*)adapter->TxBuffer.Data, adapter->TxBuffer.DataSize, 0, 0);
 			adapter->TxBuffer.DataSize = 0;
-			xSemaphoreGive(adapter->TransactionMutex);
 		}
+		xSemaphoreGive(adapter->TransactionMutex);
 	}
 }
 //------------------------------------------------------------------------------
@@ -56,17 +36,17 @@ static void PrivateIRQ(xPortT* port, void* arg)
 //------------------------------------------------------------------------------
 static xResult PrivateRequestListener(xPortT* port, xPortRequestSelector selector, void* arg)
 {
-	register LWIP_NetPortAdapterT* adapter = (LWIP_NetPortAdapterT*)port->Adapter;
-	xNetSocketT* socket = port->Binding;
+	register MqttPortAdapterT* adapter = (MqttPortAdapterT*)port->Adapter;
+	xMqttTopicT* topic = port->Binding;
 
 	switch ((uint32_t)selector)
 	{
 		case xPortRequestUpdateTxStatus:
-			port->Tx.IsEnable = socket != 0 && socket->Number != -1;
+			port->Tx.IsEnable = topic && topic->State == xMqttTopicSubscribed && topic->Client->State == xMqttClientConnected;
 			break;
 
 		case xPortRequestUpdateRxStatus:
-			port->Rx.IsEnable = socket != 0 && socket->Number != -1;
+			port->Rx.IsEnable = topic && topic->State == xMqttTopicSubscribed && topic->Client->State == xMqttClientConnected;
 			break;
 
 		case xPortRequestGetRxBuffer:
@@ -86,29 +66,45 @@ static xResult PrivateRequestListener(xPortT* port, xPortRequestSelector selecto
 			break;
 
 		case xPortRequestGetTxBufferSize:
-			*(uint32_t*)arg = socket != 0 && socket->Number != -1 ? 1000 : 0;
+			*(uint32_t*)arg = 1000;
 			break;
 
 		case xPortRequestGetTxBufferFreeSize:
-			*(uint32_t*)arg = socket != 0 && socket->Number != -1 ? 1000 : 0;
+			*(uint32_t*)arg = 1000;
 			break;
 
 		case xPortRequestSetBinding:
-			port->Binding = arg;
+		{
+			xMqttTopicT* topic = arg;
+
+			if (port->Binding)
+			{
+				((xMqttTopicT*)port->Binding)->Handle = 0;
+			}
+
+			port->Binding = topic;
+
+			if (topic)
+			{
+				topic->Handle = port;
+			}
 			break;
+		}
 
 		case xPortRequestStartTransmission:
 			xSemaphoreTake(adapter->TransactionMutex, portMAX_DELAY);
 			break;
 
 		case xPortRequestEndTransmission:
-			if (socket->Number != -1)
+		{
+			if (topic && topic->Client->State == xMqttClientConnected && adapter->TxBuffer.DataSize)
 			{
-				xNetTransmit(socket, adapter->TxBuffer.Data, adapter->TxBuffer.DataSize);
+				esp_mqtt_client_publish(topic->Client->Handle, topic->TxTopic, (char*)adapter->TxBuffer.Data, adapter->TxBuffer.DataSize, 0, 0);
 				adapter->TxBuffer.DataSize = 0;
 			}
 			xSemaphoreGive(adapter->TransactionMutex);
 			break;
+		}
 
 		default : return xResultRequestIsNotFound;
 	}
@@ -122,26 +118,29 @@ static void PrivateEventListener(xPortT* port, xPortEventSelector selector, void
 
 	switch((int)selector)
 	{
+		case xPortEventReceiveData:
+		{
+			xPortEventListener(port, xPortObjectEventRxFoundEndLine, arg);
+			//xPortEventDataPacketArgT* packet = arg;
+			//TerminalReceiveData(port, packet->Data, packet->Size);
+			break;
+		}
+
 		default: return;
 	}
 }
 //------------------------------------------------------------------------------
 static int PrivateTransmit(xPortT* port, void* data, uint32_t size)
 {
-	LWIP_NetPortAdapterT* adapter = (LWIP_NetPortAdapterT*)port->Adapter;
-	xNetSocketT* socket = port->Binding;
+	MqttPortAdapterT* adapter = (MqttPortAdapterT*)port->Adapter;
 
 	xDataBufferAdd(&adapter->TxBuffer, data, size);
-
-	//return xNetTransmit(socket, data, size);
 	return size;
 }
 //------------------------------------------------------------------------------
 static int PrivateReceive(xPortT* port, void* data, uint32_t size)
 {
-	xNetSocketT* socket = port->Binding;
-
-	return xNetReceive(socket, data, size);
+	return 0;
 }
 //------------------------------------------------------------------------------
 static void PrivateRxReceiverEventListener(xRxReceiverT* receiver, xRxReceiverEventSelector event, void* arg)
@@ -181,21 +180,18 @@ static xRxReceiverInterfaceT PrivateRxReceiverInterface =
 	.EventListener = (xRxReceiverEventListenerT)PrivateRxReceiverEventListener
 };
 //------------------------------------------------------------------------------
-xResult LWIP_NetPortAdapterInit(xPortT* port, LWIP_NetPortAdapterInitT* init)
+xResult MqttPortAdapterInit(xPortT* port, MqttPortAdapterInitT* init)
 {
 	if (port && init)
 	{
-		LWIP_NetPortAdapterT* adapter = init->Adapter;
+		MqttPortAdapterT* adapter = init->Adapter;
 
 		port->Adapter = (xPortAdapterBaseT*)adapter;
 
-		port->Adapter->Base.Note = nameof(UsartPortAdapterT);
+		port->Adapter->Base.Note = nameof(MqttPortAdapterT);
 		port->Adapter->Base.Parent = port;
 		
 		port->Adapter->Interface = &PrivatePortInterface;
-
-		adapter->RxOperationBuffer = init->RxOperationBuffer;
-		adapter->RxOperationBufferSize = init->RxOperationBufferSize;
 
 		xRxReceiverInit(&adapter->RxReceiver, 
 						port,

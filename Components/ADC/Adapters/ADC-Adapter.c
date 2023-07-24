@@ -57,7 +57,7 @@ static void PrivateHandler(xADC_T* adc)
 
 	xCircleBufferAddObject(&adc->Points->Buffer, &value, 1, 0, 0);
 
-	xSystemDelay(PrivateHandler, 1);
+	xSystemDelay(PrivateHandler, 10);
 }
 //------------------------------------------------------------------------------
 static void PrivateIRQ(xADC_T* object, void* arg)

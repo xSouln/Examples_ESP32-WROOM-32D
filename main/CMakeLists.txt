@@ -33,6 +33,8 @@ list(APPEND srcs
     ${COMMON_LIB_DIR}/Common/xWiFi/xWiFi.c
     ${COMMON_LIB_DIR}/Common/xNet/Communications/xNet-RxTransactions.c
     ${COMMON_LIB_DIR}/Common/xNet/xNet.c
+    ${COMMON_LIB_DIR}/Common/xMQTT/xMQTT.c
+    ${COMMON_LIB_DIR}/Common/xMQTT/Communications/xMQTT-RxTransactions.c
 )
 
 #includes path:
@@ -47,6 +49,7 @@ list(APPEND ink
     "${COMMON_LIB_DIR}/Common/xSystem"
     "${COMMON_LIB_DIR}/Common/xWiFi"
     "${COMMON_LIB_DIR}/Common/xNet"
+    "${COMMON_LIB_DIR}/Common/xMQTT"
 )
 #===============================================================================
 #terminal component:
@@ -121,6 +124,7 @@ list(APPEND ink
 #src:
 list(APPEND srcs
     ../Components/MQTT/MQTT-Component.c
+    ../Components/MQTT/Adapters/MQTT-Port-Adapter.c
 )
 
 #includes path:

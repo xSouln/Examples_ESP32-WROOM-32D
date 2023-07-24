@@ -31,7 +31,8 @@ static StackType_t task_stack[TASK_STACK_SIZE];
 xNetSocketT ListenSocket =
 {
 	.Port = 5000,
-	.Address.Value = 0
+	.Address.Value = 0,
+	.Number = -1
 };
 
 xNetSocketT Socket =
@@ -95,11 +96,13 @@ static void Task(void* arg)
 
 	while (true)
 	{
-		vTaskDelay(pdMS_TO_TICKS(1));
+		vTaskDelay(pdMS_TO_TICKS(10));
+
+		xNetSocketHandler(&ListenSocket);
 
 		if (mWifi.Status.State == xWiFi_StateConnected)
 		{
-			if (last_state != mWifi.Status.State)
+			if (ListenSocket.Number == -1)
 			{
 				if (xNetInitTcpSocket(&LWIP_Net, &ListenSocket) == xResultAccept)
 				{
@@ -148,6 +151,11 @@ static void Task(void* arg)
 */
 			xPortHandler(&ServerPort);
 		}
+		/*
+		else if (mWifi.Status.State == xWiFi_StateIdle && )
+		{
+
+		}*/
 
 		last_state = mWifi.Status.State;
 	}

@@ -1,8 +1,8 @@
 //==============================================================================
 //header:
 
-#ifndef _ADC_ADAPTER_H_
-#define _ADC_ADAPTER_H_
+#ifndef _MQTT_PORT_ADAPTER_H_
+#define _MQTT_PORT_ADAPTER_H_
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" {
@@ -10,51 +10,44 @@ extern "C" {
 //==============================================================================
 //includes:
 
-#include "Common/xADC/xADC.h"
+#include "Components_Types.h"
+#include "Common/xPort/xPort.h"
 #include "Common/xRxReceiver.h"
 #include "Common/xDataBuffer.h"
-#include "esp_adc/adc_continuous.h"
-#include "esp_adc/adc_oneshot.h"
+#include "Common/xMQTT/xMQTT.h"
 //==============================================================================
 //types:
 
-typedef struct
-{
-	//struct adc_continuous_ctx_t* Handle;
-	//adc_digi_output_data_t RxBuffer[128];
-
-} ADC_AdapterInternalT;
 //------------------------------------------------------------------------------
 typedef struct
 {
-	xADC_AdapterBaseT Base;
+	xPortAdapterBaseT Base;
 
-	ADC_AdapterInternalT Internal;
+	xRxReceiverT RxReceiver;
+	xDataBufferT TxBuffer;
 
-	uint8_t ADC_Unit;
+	SemaphoreHandle_t TransactionMutex;
 
-} ADC_AdapterT;
+} MqttPortAdapterT;
 //------------------------------------------------------------------------------
 typedef struct
 {
-	ADC_AdapterT* Adapter;
+	MqttPortAdapterT* Adapter;
 
-	xADC_PointsT* PointsBuffer;
+	uint8_t* TxBuffer;
+	int TxBufferSize;
 
-	uint16_t* PointsMemmory;
-	uint32_t SizeOfPointsMemmory;
+	uint8_t* RxBuffer;
+	int RxBufferSize;
 
-	uint8_t ChannelsCount;
-	uint8_t ADC_Unit;
-
-} ADC_AdapterInitializationT;
+} MqttPortAdapterInitT;
 //==============================================================================
 //functions:
 
-xResult ADC_AdapterInit(xADC_T* object, ADC_AdapterInitializationT* initialization);
+xResult MqttPortAdapterInit(xPortT* port, MqttPortAdapterInitT* adapter);
 //==============================================================================
 #ifdef __cplusplus
 }
 #endif
 //------------------------------------------------------------------------------
-#endif //_ADC_ADAPTER_H_
+#endif //_MQTT_PORT_ADAPTER_H_
